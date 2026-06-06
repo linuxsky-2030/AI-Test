@@ -773,18 +773,36 @@ def list_reports():
     """获取报告列表"""
     reports = get_reports()
 
-    # 返回简略信息
-    summary = [{
-        "id": r.get("id"),
-        "model_id": r.get("model_id"),
-        "model_name": r.get("model_name"),
-        "dimension": r.get("dimension"),
-        "timestamp": r.get("timestamp"),
-        "test_case_count": r.get("test_case_count", 0),
-        "overall_score": r.get("overall_score"),
-        "overall_scores": r.get("overall_scores", {}),
-        "status": r.get("status", "unknown")
-    } for r in reports]
+    # 返回简略信息（补充派生字段匹配前端期望）
+    summary = []
+    for r in reports:
+        results = r.get("results", [])
+        total = r.get("test_case_count", len(results)) or len(results)
+        passed = sum(1 for res in results if res.get("score", 0) >= 0.6)
+        scores_list = r.get("overall_scores", {})
+        overall_score = r.get("overall_score") or (round(sum(scores_list.values()) / len(scores_list), 2) if scores_list else None)
+        # 风险等级：hallucination_avg < 0.3 = low, 0.3-0.6 = medium, > 0.6 = high
+        hall_avg = r.get("hallucination_avg", 0)
+        if hall_avg > 0.6:
+            risk = "high"
+        elif hall_avg > 0.3:
+            risk = "medium"
+        else:
+            risk = "low"
+        summary.append({
+            "id": r.get("id"),
+            "model_id": r.get("model_id"),
+            "model_name": r.get("model_name", "Unknown"),
+            "dimensions": [r.get("dimension", "all")],
+            "timestamp": r.get("timestamp"),
+            "generated_at": r.get("timestamp", ""),
+            "test_case_count": total,
+            "overall_score": overall_score,
+            "overall_scores": scores_list,
+            "pass_rate": round(passed / total * 100, 1) if total > 0 else 0,
+            "risk_level": risk,
+            "status": r.get("status", "unknown")
+        })
 
     return jsonify({"success": True, "data": summary, "total": len(summary)})
 
