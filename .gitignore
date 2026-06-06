@@ -11,8 +11,9 @@ dist/
 build/
 *.log
 .DS_Store
-data/configs/*.json
-data/reports/*.json
-data/reports/*.html
-data/test_cases/*.json
-!data/test_cases/builtin_cases.json
+data/configs/
+data/models.json
+data/reports.json
+data/reports/
+data/test_cases/
+data/testcases/
