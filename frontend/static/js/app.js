@@ -212,7 +212,7 @@ const App = {
 
     // ── 模型管理 ──
     // 状态
-    _modelFilter = { provider: 'all', search: '' };
+    _modelFilter: { provider: 'all', search: '' },
 
     async loadModels() {
         try {

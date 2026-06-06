@@ -378,16 +378,44 @@ def _call_model_api(model: dict, prompt: str, input_data: dict = None) -> str:
                 return data.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "")
             return f"[Gemini API 错误: {resp.status_code}]"
 
+        elif model_type == "minimax" or "minimaxi" in api_endpoint:
+            import requests
+            # MiniMax chat completion v2
+            url = "https://api.minimaxi.com/v1/text/chatcompletion_v2"
+            model_name = input_data.get("model") if input_data else "MiniMax-Text-01"
+            payload = {"model": model_name, "messages": messages, "temperature": 0.3, "max_tokens": 512}
+            headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
+            resp = requests.post(url, headers=headers, json=payload, timeout=30)
+            data = resp.json()
+            # 检查业务状态码（MiniMax 用 base_resp.status_code）
+            base = data.get("base_resp", {})
+            if base.get("status_code") != 0 and base.get("status_code") is not None:
+                return f"[MiniMax 错误 {base.get('status_code')}] {base.get('status_msg', '')}"
+            # 正常返回：choices[0].message.content
+            choices = data.get("choices", [])
+            if choices:
+                msg = choices[0].get("message", {})
+                content = msg.get("content", "") or msg.get("text", "")
+                return content
+            return "[MiniMax 空响应]"
+
         else:
             # Custom / generic OpenAI-compatible API
             import requests
             headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
+            model_name = (input_data.get("model") if input_data else None) or (model.get("name") if model.get("name") else None)
             payload = {"messages": messages, "temperature": 0.3, "max_tokens": 512}
+            if model_name:
+                payload["model"] = model_name
             resp = requests.post(api_endpoint, headers=headers, json=payload, timeout=30)
-            if resp.status_code == 200:
-                data = resp.json()
-                return data.get("choices", [{}])[0].get("message", {}).get("content", "")
-            return f"[API 错误: {resp.status_code}]"
+            data = resp.json()
+            if "error" in data:
+                return f"[API 错误] {data['error']}"
+            choices = data.get("choices", [])
+            if choices:
+                msg = choices[0].get("message", {})
+                return msg.get("content", "") or msg.get("text", "")
+            return f"[API 错误 {resp.status_code}] {resp.text[:100]}"
     except Exception as e:
         return f"[调用异常: {str(e)}]"
 
@@ -586,13 +614,15 @@ def run_evaluation():
         return jsonify({"success": False, "error": "请求数据不能为空"}), 400
 
     model_id = data.get("model_id")
-    dimension = data.get("dimension", "all")
+    # 支持 dimension 或 dimensions（前端一键评测用 dimensions 数组）
+    dims = data.get("dimensions") or [data.get("dimension", "all")]
+    dimension = dims[0] if dims else "all"
     test_cases = data.get("test_cases", [])
 
     # 前端一键评测时：dimensions + tc_source=builtin → 自动加载内置用例
     if not test_cases and data.get("tc_source") == "builtin":
         dim_filter = dimension if dimension != "all" else None
-        result = test_case_manager.list_cases(dimension=dim_filter, limit=2000)
+        result = test_case_manager.list_cases(dimension=dim_filter, limit=50)
         test_cases = result["cases"]
         # 更新维度字段以匹配 TestCase 格式
         for tc in test_cases:
@@ -664,6 +694,7 @@ def run_evaluation():
         "timestamp": datetime.datetime.now().isoformat(),
         "test_case_count": len(test_cases),
         "results": results,
+        "overall_score": round(sum(overall_scores.values()) / len(overall_scores), 2) if overall_scores else None,
         "overall_scores": overall_scores,
         "status": "completed"
     }
@@ -677,6 +708,7 @@ def run_evaluation():
         "success": True,
         "data": {
             "report_id": report_id,
+            "overall_score": round(sum(overall_scores.values()) / len(overall_scores), 2) if overall_scores else None,
             "overall_scores": overall_scores,
             "test_case_count": len(test_cases),
             "status": "completed"
@@ -707,6 +739,7 @@ def list_reports():
         "dimension": r.get("dimension"),
         "timestamp": r.get("timestamp"),
         "test_case_count": r.get("test_case_count", 0),
+        "overall_score": r.get("overall_score"),
         "overall_scores": r.get("overall_scores", {}),
         "status": r.get("status", "unknown")
     } for r in reports]
