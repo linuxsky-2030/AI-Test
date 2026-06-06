@@ -103,46 +103,142 @@ const App = {
     },
 
     // ── 模型管理 ──
+    // 状态
+    _modelFilter = { provider: 'all', search: '' };
+
     async loadModels() {
         try {
             const res = await fetch(`${API_BASE}/models`).catch(() => ({ json: () => ({ data: [] }) }));
             const json = await res.json();
-            const models = json.data || [];
-            this.renderPopularModels(models);
-            const container = document.getElementById('model-cards');
-            if (models.length === 0) {
-                container.innerHTML = '<div class="empty-state">暂无已配置模型</div>';
-            } else {
-                container.innerHTML = models.map(m => `<div class="model-card"><div class="model-card-header"><div class="model-name">${m.name}</div><div class="model-type">${m.model_type || 'custom'}</div></div><div class="model-meta">${(m.capabilities || []).map(c => `<span class="cap-tag">${c}</span>`).join('')}</div><div style="display:flex;gap:8px;margin-top:8px;"><button class="btn btn-sm btn-primary" onclick="App.runBenchmarkForModel('${m.id}')" title="一键评测">⚡ 评测</button><button class="btn btn-sm btn-secondary" onclick="App.showModelModalForEdit('${m.id}')" title="编辑">✏️</button><button class="btn btn-sm btn-ghost" onclick="App.deleteModel('${m.id}')" title="删除">🗑️</button></div></div>`).join('');
-            }
+            const configuredModels = json.data || [];
+            this.renderChataiModels(configuredModels);
+            this.renderConfiguredModels(configuredModels);
             this.updateEvalModelSelect();
+            this.bindProviderChips();
         } catch (e) { console.error('Models error:', e); }
     },
 
-    renderPopularModels(configuredModels) {
-        const container = document.getElementById('popular-models-grid');
-        const configuredNames = configuredModels.map(m => m.name);
-        const providers = {
-            'OpenAI': POPULAR_MODELS.filter(m => m.provider === 'OpenAI'),
-            'Anthropic': POPULAR_MODELS.filter(m => m.provider === 'Anthropic'),
-            'Google': POPULAR_MODELS.filter(m => m.provider === 'Google'),
-            'Meta': POPULAR_MODELS.filter(m => m.provider === 'Meta'),
-            '阿里云': POPULAR_MODELS.filter(m => m.provider === '阿里云'),
-            'DeepSeek': POPULAR_MODELS.filter(m => m.provider === 'DeepSeek'),
-            '其他': POPULAR_MODELS.filter(m => !['OpenAI', 'Anthropic', 'Google', 'Meta', '阿里云', 'DeepSeek'].includes(m.provider)),
-        };
-        let html = '';
-        for (const [provider, pModels] of Object.entries(providers)) {
-            if (pModels.length === 0) continue;
-            html += `<div style="margin-bottom:16px;"><div style="font-size:12px;color:#888;font-weight:500;margin-bottom:8px;">${provider}</div><div style="display:flex;flex-wrap:wrap;gap:8px;">`;
-            for (const model of pModels) {
-                const isAdded = configuredNames.includes(model.name);
-                const encoded = btoa(encodeURIComponent(JSON.stringify(model)));
-                html += `<button class="pop-model-btn ${isAdded ? 'added' : ''}" data-model="${encoded}" onclick="App.quickAddModelFromBtn(this)" ${isAdded ? 'disabled' : ''}><span>${model.icon}</span><span>${model.name}</span>${isAdded ? '<span style="font-size:11px;">✓ 已添加</span>' : '<span>+ 添加</span>'}</button>`;
-            }
-            html += '</div></div>';
+    bindProviderChips() {
+        document.querySelectorAll('.provider-chip').forEach(chip => {
+            chip.addEventListener('click', () => {
+                document.querySelectorAll('.provider-chip').forEach(c => c.classList.remove('active'));
+                chip.classList.add('active');
+                this._modelFilter.provider = chip.dataset.provider;
+                this._modelFilter.search = document.getElementById('model-search-input')?.value || '';
+                this.renderChataiModelsWithFilter();
+            });
+        });
+        document.getElementById('model-search-input')?.addEventListener('input', e => {
+            this._modelFilter.search = e.target.value;
+            this.renderChataiModelsWithFilter();
+        });
+    },
+
+    filterModels() {
+        this._modelFilter.search = document.getElementById('model-search-input')?.value || '';
+        this.renderChataiModelsWithFilter();
+    },
+
+    renderChataiModels(configuredModels) {
+        this._configuredNames = (configuredModels || []).map(m => m.name);
+        this.renderChataiModelsWithFilter();
+    },
+
+    renderChataiModelsWithFilter() {
+        const container = document.getElementById('chatai-model-cards');
+        const { provider, search } = this._modelFilter;
+        const q = search.toLowerCase();
+        let models = CHATAI_MODELS;
+        if (provider !== 'all') {
+            models = models.filter(m => m.provider === provider);
         }
-        container.innerHTML = html;
+        if (q) {
+            models = models.filter(m => m.name.toLowerCase().includes(q) || m.desc.toLowerCase().includes(q));
+        }
+        if (models.length === 0) {
+            container.innerHTML = '<div class="empty-state">未找到匹配的模型</div>';
+            return;
+        }
+        container.innerHTML = models.map(m => {
+            const isAdded = this._configuredNames.includes(m.name);
+            const caps = (m.caps || ['chat']).map(c => `<span class="cap-tag">${c}</span>`).join('');
+            const newBadge = m.isNew ? '<span class="cm-new">NEW</span>' : '';
+            return `<div class="chatai-model-card">
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <div class="cm-logo" style="background:${m.logoBg || '#4263EB'};color:white;">${m.icon}</div>
+                    <div style="flex:1;min-width:0;">
+                        <div class="cm-name">${m.name}</div>
+                        <div class="cm-provider">${this._providerName(m.provider)}</div>
+                    </div>
+                    ${newBadge}
+                </div>
+                <div class="cm-desc">${m.desc}</div>
+                <div class="cm-tags">${caps}${m.context ? `<span class="cap-tag" style="background:#FEF9C3;color:#92400E;">${m.context}</span>` : ''}</div>
+                <div style="display:flex;gap:8px;margin-top:6px;">
+                    ${isAdded
+                        ? `<button class="btn btn-sm" style="background:var(--primary-light);color:var(--primary);cursor:default;" disabled>✓ 已添加</button>`
+                        : `<button class="btn btn-sm btn-primary" onclick="App.quickAddChataiModel('${m.name}', '${m.type}', '${m.provider}', this)">+ 添加</button>`
+                    }
+                </div>
+            </div>`;
+        }).join('');
+    },
+
+    _providerName(p) {
+        const map = { kimi:'Kimi', claude:'Claude', deepseek:'DeepSeek', gpt:'G-5', gemini:'Gemini', grok:'Grok', minimax:'MiniMax', qwen:'通义千问', doubao:'豆包', zhipu:'智谱', ernie:'文心', hunyuan:'腾讯混元', spark:'讯飞星火', yi:'Yi', image:'图像/视频', other:'其他' };
+        return map[p] || p;
+    },
+
+    renderConfiguredModels(models) {
+        const container = document.getElementById('model-cards');
+        if (!models || models.length === 0) {
+            container.innerHTML = '<div class="empty-state">暂无已配置模型，请从上方热门模型库添加</div>';
+            return;
+        }
+        container.innerHTML = models.map(m => {
+            const caps = (m.capabilities || []).map(c => `<span class="cap-tag">${c}</span>`).join('');
+            return `<div class="model-card">
+                <div class="model-card-top">
+                    <div class="model-logo" style="background:#4263EB;color:white;font-size:16px;">🤖</div>
+                    <div class="model-info">
+                        <div class="model-name">${m.name}</div>
+                        <div class="model-provider">${m.api_endpoint ? new URL(m.api_endpoint).hostname : '自定义 API'}</div>
+                    </div>
+                    <span class="model-type-badge">${m.model_type || 'custom'}</span>
+                </div>
+                <div class="model-meta">${caps}</div>
+                <div class="model-card-actions">
+                    <button class="btn btn-sm btn-primary" onclick="App.runBenchmarkForModel('${m.id}')">⚡ 评测</button>
+                    <button class="btn btn-sm btn-secondary" onclick="App.showModelModalForEdit('${m.id}')">✏️</button>
+                    <button class="btn btn-sm btn-ghost" onclick="App.deleteModel('${m.id}')">🗑️</button>
+                </div>
+            </div>`;
+        }).join('');
+    },
+
+    async quickAddChataiModel(name, type, provider, btn) {
+        const model = CHATAI_MODELS.find(m => m.name === name);
+        if (!model) return;
+        if (this._configuredNames.includes(name)) { alert(name + ' 已添加'); return; }
+        const payload = { name, model_type: type || 'custom', api_endpoint: '', api_key: '', capabilities: model.caps || ['chat'] };
+        try {
+            const res = await fetch(`${API_BASE}/models`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            const json = await res.json();
+            if (json.id || json.success) {
+                if (btn) {
+                    btn.textContent = '✓ 已添加';
+                    btn.className = 'btn btn-sm';
+                    btn.style = 'background:var(--primary-light);color:var(--primary);cursor:default;';
+                    btn.disabled = true;
+                }
+                const res2 = await fetch(`${API_BASE}/models`);
+                const json2 = await res2.json();
+                this._configuredNames = (json2.data || []).map(m => m.name);
+                this.renderConfiguredModels(json2.data || []);
+            } else {
+                alert('添加失败：' + (json.error || JSON.stringify(json)));
+            }
+        } catch (e) { alert('添加失败：' + e.message); }
     },
 
     async quickAddModel(model) {
