@@ -449,8 +449,8 @@ const App = {
                 fetch(`${API_BASE}/eval/report/${reportId}`).catch(() => ({ json: () => ({}) })),
                 fetch(`${API_BASE}/reports/${reportId}/chart`).catch(() => ({ json: () => ({}) }))
             ]);
-            const report = await reportRes.json();
-            const charts = await chartRes.json();
+            const report = (await reportRes.json()).data || {};
+            const charts = (await chartRes.json()).data || {};
             document.getElementById('report-model-name').textContent = report.model_name || '--';
             document.getElementById('report-score-display').textContent = (report.overall_score != null ? report.overall_score : '--') + '分';
             document.getElementById('report-total-cases').textContent = report.total_cases || '--';
@@ -458,9 +458,9 @@ const App = {
             document.getElementById('report-pass-rate').textContent = (report.pass_rate != null ? report.pass_rate : '--') + '%';
             document.getElementById('report-hallucination').textContent = report.hallucination_avg != null ? report.hallucination_avg.toFixed(3) : '--';
             const barEl = document.getElementById('dim-bar-chart');
-            if (barEl && charts.bar_chart) { const bar = echarts.init(barEl); bar.setOption(charts.bar_chart); }
+            if (barEl && charts.bar) { const bar = echarts.init(barEl); bar.setOption(charts.bar); }
             const pieEl = document.getElementById('hallucination-pie-chart');
-            if (pieEl && charts.pie_chart) { const pie = echarts.init(pieEl); pie.setOption(charts.pie_chart); }
+            if (pieEl && charts.pie) { const pie = echarts.init(pieEl); pie.setOption(charts.pie); }
             const tbody = document.getElementById('report-detail-tbody');
             if (report.results && report.results.length > 0) {
                 tbody.innerHTML = report.results.map(r => `<tr><td>${r.dimension || '--'}</td><td>${r.test_case_id || '--'}</td><td>${r.score != null ? r.score : '--'}</td><td>${r.passed ? '✅' : '❌'}</td><td>${r.hallucination_detected ? '🔴' : '🟢'}</td><td><span class="risk-${r.risk_level || 'unknown'}">${r.risk_level || '--'}</span></td></tr>`).join('');
