@@ -412,23 +412,29 @@ def add_model():
     if not data:
         return jsonify({"success": False, "error": "请求数据不能为空"}), 400
 
-    required_fields = ["name", "type", "config"]
+    required_fields = ["name", "model_type"]
     for field in required_fields:
-        if field not in data:
+        if field not in data or not str(data.get(field) or "").strip():
             return jsonify({"success": False, "error": f"缺少必需字段: {field}"}), 400
 
-    model_id = str(uuid.uuid4())[:8]
+    model_id = f"model_{uuid.uuid4().hex[:8]}"
     model = {
         "id": model_id,
-        "name": data["name"],
-        "type": data["type"],
-        "config": data["config"],
+        "name": data["name"].strip(),
+        "model_type": data["model_type"],
+        "api_endpoint": data.get("api_endpoint", "").strip(),
+        "api_key": data.get("api_key", "").strip(),
+        "capabilities": data.get("capabilities", ["chat"]),
         "description": data.get("description", ""),
         "created_at": datetime.datetime.now().isoformat(),
         "updated_at": datetime.datetime.now().isoformat()
     }
 
     models = get_models()
+    # 防止重复添加同名的模型
+    if any(m.get("name") == model["name"] for m in models):
+        return jsonify({"success": False, "error": f"模型 {model['name']} 已存在"}), 400
+
     models.append(model)
     save_models(models)
 
