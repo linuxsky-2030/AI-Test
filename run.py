@@ -14,10 +14,20 @@ from app import create_app
 app = create_app()
 
 if __name__ == "__main__":
+    import socket
+    port = 5000
+    max_tries = 5
+    for i in range(max_tries):
+        try:
+            s = socket.socket()
+            s.bind(("0.0.0.0", port))
+            s.close()
+            break
+        except OSError:
+            port += 1
     print("=" * 50)
     print("AI-Test 评测系统启动中...")
     print("=" * 50)
-    print("API 服务地址: http://0.0.0.0:5000")
-    print("前端页面:     http://0.0.0.0:5000/")
+    print(f"前端页面: http://localhost:{port}/")
     print("=" * 50)
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(host="0.0.0.0", port=port, debug=False)

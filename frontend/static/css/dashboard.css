@@ -386,3 +386,41 @@ textarea.form-control { resize: vertical; min-height: 100px; }
     .hallucination-workspace { grid-template-columns: 1fr; }
     .charts-row { grid-template-columns: 1fr; }
 }
+
+/* ── 流行模型快速添加按钮 ── */
+.pop-model-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 12px;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--text);
+}
+
+.pop-model-btn:hover:not(:disabled) {
+    border-color: var(--primary);
+    color: var(--primary);
+    background: #f0f5ff;
+}
+
+.pop-model-btn.added {
+    background: #f0f5ff;
+    border-color: #d9e4ff;
+    color: #999;
+    cursor: default;
+}
+
+.pop-model-btn span:first-child { font-size: 14px; }
+.pop-model-btn span:last-child { font-size: 11px; color: var(--primary); }
+.pop-model-btn.added span:last-child { color: #52c41a; }
+
+/* ── 报告内联指标 ── */
+.report-meta { font-size: 14px; color: #666; margin-top: 8px; }
+
+/* ── 评测页信息卡片 ── */
+.benchmark-info { border: 1px solid #d9e4ff; }
