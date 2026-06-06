@@ -4,11 +4,18 @@ AI-Test 评测系统 - Flask 后端服务
 """
 
 import os
+import sys
 import json
 import uuid
 import datetime
 from flask import Flask, request, jsonify, render_template, send_from_directory
 from flask_cors import CORS
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from backend.services.test_case_manager import TestCaseManager
+
+# 测试用例管理器（全局单例，启动时加载内置用例）
+test_case_manager = TestCaseManager()
 
 # ============================================================================
 # 初始化 Flask 应用
@@ -41,7 +48,7 @@ class EvaluationEngine:
         self.name = "base_engine"
         self.dimensions = ["accuracy", "fluency", "relevance"]
 
-    def evaluate(self, model_response, ground_truth, dimension="accuracy"):
+    def evaluate(self, model_response, ground_truth, dimension="all"):
         """执行评测"""
         raise NotImplementedError
 
@@ -54,32 +61,33 @@ class LLMEvaluator(EvaluationEngine):
         self.name = "llm_evaluator"
         self.dimensions = ["accuracy", "fluency", "relevance", "coherence", "safety"]
 
-    def evaluate(self, model_response, ground_truth, dimension="accuracy"):
+    def evaluate(self, model_response, ground_truth, dimension="all"):
         """使用规则和启发式方法进行初步评测"""
         scores = {}
 
-        # 准确度评分
-        if dimension == "accuracy" or dimension == "all":
+        # 未知维度时也计算所有指标
+        is_unknown = dimension not in ("accuracy", "fluency", "relevance", "coherence", "safety")
+        if dimension == "accuracy" or dimension == "all" or is_unknown:
             accuracy_score = self._calc_accuracy(model_response, ground_truth)
             scores["accuracy"] = accuracy_score
 
         # 流畅度评分
-        if dimension == "fluency" or dimension == "all":
+        if dimension == "fluency" or dimension == "all" or is_unknown:
             fluency_score = self._calc_fluency(model_response)
             scores["fluency"] = fluency_score
 
         # 相关性评分
-        if dimension == "relevance" or dimension == "all":
+        if dimension == "relevance" or dimension == "all" or is_unknown:
             relevance_score = self._calc_relevance(model_response, ground_truth)
             scores["relevance"] = relevance_score
 
         # 连贯性评分
-        if dimension == "coherence" or dimension == "all":
+        if dimension == "coherence" or dimension == "all" or is_unknown:
             coherence_score = self._calc_coherence(model_response)
             scores["coherence"] = coherence_score
 
         # 安全性评分
-        if dimension == "safety" or dimension == "all":
+        if dimension == "safety" or dimension == "all" or is_unknown:
             safety_score = self._calc_safety(model_response)
             scores["safety"] = safety_score
 
@@ -313,6 +321,78 @@ class HallucinationDetector:
 llm_evaluator = LLMEvaluator()
 hallucination_detector = HallucinationDetector()
 
+
+# ============================================================================
+# 模型 API 调用工具
+# ============================================================================
+def _call_model_api(model: dict, prompt: str, input_data: dict = None) -> str:
+    """调用模型 API，返回生成的文本"""
+    api_endpoint = model.get("api_endpoint", "").strip()
+    api_key = model.get("api_key", "").strip()
+    model_type = model.get("model_type", "openai")
+
+    if not api_endpoint or not api_key:
+        return "[错误: 缺少 API 配置]"
+
+    # 从 input_data 中提取消息历史（支持多轮对话）
+    messages = []
+    if input_data and isinstance(input_data, dict):
+        history = input_data.get("messages", [])
+        for msg in history:
+            messages.append({"role": msg.get("role", "user"), "content": msg.get("content", "")})
+    messages.append({"role": "user", "content": prompt})
+
+
+    try:
+        if model_type == "openai" or "openai" in api_endpoint:
+            import openai
+            client = openai.OpenAI(api_key=api_key)
+            resp = client.chat.completions.create(
+                model=input_data.get("model") if input_data else "gpt-4o",
+                messages=messages,
+                temperature=0.3,
+                max_tokens=512
+            )
+            return resp.choices[0].message.content or ""
+
+
+        elif model_type == "claude" or "anthropic" in api_endpoint:
+            import anthropic
+            client = anthropic.Anthropic(api_key=api_key)
+            resp = client.messages.create(
+                model=input_data.get("model") if input_data else "claude-sonnet-4-20250514",
+                messages=[{"role": "user" if m["role"] == "user" else "assistant", "content": m["content"]} for m in messages],
+                temperature=0.3,
+                max_tokens=512
+            )
+            return resp.content[0].text if resp.content else ""
+
+        elif model_type == "gemini" or "gemini" in api_endpoint:
+            import requests
+            url = f"{api_endpoint.rstrip('/')}/v1beta/models/{input_data.get('model', 'gemini-2.0-flash')}:generateContent"
+            headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
+            payload = {"contents": [{"parts": [{"text": prompt}]}], "generationConfig": {"temperature": 0.3, "maxOutputTokens": 512}}
+            resp = requests.post(url, headers=headers, json=payload, timeout=30)
+            if resp.status_code == 200:
+                data = resp.json()
+                return data.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "")
+            return f"[Gemini API 错误: {resp.status_code}]"
+
+        else:
+            # Custom / generic OpenAI-compatible API
+            import requests
+            headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
+            payload = {"messages": messages, "temperature": 0.3, "max_tokens": 512}
+            resp = requests.post(api_endpoint, headers=headers, json=payload, timeout=30)
+            if resp.status_code == 200:
+                data = resp.json()
+                return data.get("choices", [{}])[0].get("message", {}).get("content", "")
+            return f"[API 错误: {resp.status_code}]"
+    except Exception as e:
+        return f"[调用异常: {str(e)}]"
+
+
+
 # ============================================================================
 # 数据存储工具函数
 # ============================================================================
@@ -509,6 +589,17 @@ def run_evaluation():
     dimension = data.get("dimension", "all")
     test_cases = data.get("test_cases", [])
 
+    # 前端一键评测时：dimensions + tc_source=builtin → 自动加载内置用例
+    if not test_cases and data.get("tc_source") == "builtin":
+        dim_filter = dimension if dimension != "all" else None
+        result = test_case_manager.list_cases(dimension=dim_filter, limit=2000)
+        test_cases = result["cases"]
+        # 更新维度字段以匹配 TestCase 格式
+        for tc in test_cases:
+            tc["response"] = tc.get("input_data", {})
+            tc["ground_truth"] = tc.get("expected_output", {})
+            tc["context"] = ""
+
     if not model_id:
         return jsonify({"success": False, "error": "缺少 model_id"}), 400
 
@@ -526,21 +617,31 @@ def run_evaluation():
     # 执行评测
     results = []
     for tc in test_cases:
-        response = tc.get("response", "")
-        ground_truth = tc.get("ground_truth", "")
+        # 从 input_data 提取 prompt
+        input_data = tc.get("input_data", {})
+        if isinstance(input_data, dict):
+            prompt = input_data.get("text") or input_data.get("description") or str(input_data)
+        else:
+            prompt = str(input_data)
 
-        eval_result = llm_evaluator.evaluate(response, ground_truth, dimension)
+        # 调用模型获取回复
+        model_response = _call_model_api(model, prompt, input_data)
+
+        # expected_output 字典转字符串
+        expected_output = tc.get("expected_output", {})
+        ground_truth = json.dumps(expected_output, ensure_ascii=False) if isinstance(expected_output, dict) else str(expected_output or "")
+
+        eval_result = llm_evaluator.evaluate(model_response, ground_truth, dimension)
 
         # 幻觉检测
-        hallucination_result = hallucination_detector.detect(
-            response,
-            tc.get("context", ""),
-            ground_truth
-        )
+        hallucination_result = hallucination_detector.detect(model_response, tc.get("description", ""), ground_truth)
 
         results.append({
             "test_case_id": tc.get("id", "unknown"),
-            "dimension": dimension,
+            "test_case_title": tc.get("title", ""),
+            "dimension": tc.get("dimension", dimension),
+            "model_prompt": prompt,
+            "model_response": model_response,
             "evaluation": eval_result,
             "hallucination": hallucination_result
         })

@@ -240,6 +240,7 @@ def _generate_builtin_cases() -> List[Dict]:
         case_id += 1
 
     # 保存到文件
+    builtin_file = DATA_DIR / "builtin_cases.json"
     builtin_file.parent.mkdir(parents=True, exist_ok=True)
     with open(builtin_file, "w", encoding="utf-8") as f:
         json.dump(cases, f, ensure_ascii=False, indent=2)
