@@ -113,7 +113,7 @@ const App = {
             if (models.length === 0) {
                 container.innerHTML = '<div class="empty-state">暂无已配置模型</div>';
             } else {
-                container.innerHTML = models.map(m => `<div class="model-card"><div class="model-card-header"><div class="model-name">${m.name}</div><div class="model-type">${m.model_type || 'custom'}</div></div><div class="model-meta">${(m.capabilities || []).map(c => `<span class="cap-tag">${c}</span>`).join('')}</div><div style="display:flex;gap:8px;margin-top:8px;"><button class="btn btn-sm btn-primary" onclick="App.runBenchmarkForModel('${m.id}', '${m.name.replace(/'/g, "\\'")}')" title="一键评测">⚡ 评测</button><button class="btn btn-sm btn-secondary" onclick="App.deleteModel('${m.id}')" title="删除">🗑️</button></div></div>`).join('');
+                container.innerHTML = models.map(m => `<div class="model-card"><div class="model-card-header"><div class="model-name">${m.name}</div><div class="model-type">${m.model_type || 'custom'}</div></div><div class="model-meta">${(m.capabilities || []).map(c => `<span class="cap-tag">${c}</span>`).join('')}</div><div style="display:flex;gap:8px;margin-top:8px;"><button class="btn btn-sm btn-primary" onclick="App.runBenchmarkForModel('${m.id}')" title="一键评测">⚡ 评测</button><button class="btn btn-sm btn-secondary" onclick="App.showModelModalForEdit('${m.id}')" title="编辑">✏️</button><button class="btn btn-sm btn-ghost" onclick="App.deleteModel('${m.id}')" title="删除">🗑️</button></div></div>`).join('');
             }
             this.updateEvalModelSelect();
         } catch (e) { console.error('Models error:', e); }
@@ -273,7 +273,10 @@ const App = {
     },
 
     // ── 模型 CRUD ──
+    _editingModelId: null,
+
     showModelModal(prefill) {
+        this._editingModelId = null;
         document.getElementById('model-modal').style.display = 'flex';
         document.getElementById('model-modal-title').textContent = prefill ? '添加 ' + prefill.name : '添加自定义模型';
         if (prefill) {
@@ -288,19 +291,75 @@ const App = {
         document.getElementById('m-apikey').value = '';
     },
 
-    closeModelModal() { document.getElementById('model-modal').style.display = 'none'; },
+    async showModelModalForEdit(modelId) {
+        try {
+            const res = await fetch(`${API_BASE}/models/${modelId}`);
+            const json = await res.json();
+            if (!json.data) { alert('模型不存在'); return; }
+            const m = json.data;
+            this._editingModelId = modelId;
+            document.getElementById('model-modal').style.display = 'flex';
+            document.getElementById('model-modal-title').textContent = '编辑模型：' + m.name;
+            document.getElementById('m-name').value = m.name || '';
+            document.getElementById('m-type').value = m.model_type || 'custom';
+            document.getElementById('m-endpoint').value = m.api_endpoint || '';
+            document.getElementById('m-apikey').value = m.api_key ? '\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022' : '';
+            // 能力复选框
+            const caps = m.capabilities || [];
+            document.querySelectorAll('#model-modal .capability-checkboxes input').forEach(cb => {
+                cb.checked = caps.includes(cb.value);
+            });
+        } catch (e) { alert('获取模型失败：' + e.message); }
+    },
+
+    closeModelModal() {
+        document.getElementById('model-modal').style.display = 'none';
+        this._editingModelId = null;
+    },
 
     async saveModel() {
         const name = document.getElementById('m-name').value.trim();
         if (!name) return alert('请输入模型名称');
         const capabilities = Array.from(document.querySelectorAll('#model-modal .capability-checkboxes input:checked')).map(cb => cb.value);
-        const payload = { name, model_type: document.getElementById('m-type').value, api_endpoint: document.getElementById('m-endpoint').value.trim(), api_key: document.getElementById('m-apikey').value.trim(), capabilities };
+        const apiKey = document.getElementById('m-apikey').value.trim();
+        const payload = {
+            name,
+            model_type: document.getElementById('m-type').value,
+            api_endpoint: document.getElementById('m-endpoint').value.trim(),
+            capabilities: capabilities.length ? capabilities : ['chat']
+        };
+        // 只有填了新key才更新key（避免覆盖）
+        if (apiKey && !apiKey.startsWith('\u2022')) {
+            payload.api_key = apiKey;
+        }
+
         try {
-            const res = await fetch(`${API_BASE}/models`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            let res;
+            if (this._editingModelId) {
+                // 更新
+                res = await fetch(`${API_BASE}/models/${this._editingModelId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+            } else {
+                // 新增
+                if (!apiKey) return alert('请填写 API Key');
+                payload.api_key = apiKey;
+                res = await fetch(`${API_BASE}/models`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+            }
             const json = await res.json();
-            if (json.id || json.success) { this.closeModelModal(); this.loadModels(); }
-            else { alert('添加失败：' + JSON.stringify(json)); }
-        } catch (e) { alert('添加失败：' + e.message); }
+            if (json.success || json.id) {
+                this.closeModelModal();
+                this.loadModels();
+            } else {
+                alert((this._editingModelId ? '更新' : '添加') + '失败：' + (json.error || JSON.stringify(json)));
+            }
+        } catch (e) { alert((this._editingModelId ? '更新' : '添加') + '失败：' + e.message); }
     },
 
     async deleteModel(id) {

@@ -465,6 +465,34 @@ def delete_model(model_id):
     return jsonify({"success": True, "message": "模型删除成功"})
 
 
+@app.route("/api/models/<model_id>", methods=["PUT"])
+def update_model(model_id):
+    """更新模型配置"""
+    data = request.get_json()
+    if not data:
+        return jsonify({"success": False, "error": "请求数据不能为空"}), 400
+
+    models = get_models()
+    found = False
+    for i, m in enumerate(models):
+        if m.get("id") == model_id:
+            models[i]["name"] = data.get("name", m["name"])
+            models[i]["model_type"] = data.get("model_type", m["model_type"])
+            models[i]["api_endpoint"] = data.get("api_endpoint", m.get("api_endpoint", ""))
+            models[i]["api_key"] = data.get("api_key", m.get("api_key", ""))
+            models[i]["capabilities"] = data.get("capabilities", m.get("capabilities", ["chat"]))
+            models[i]["description"] = data.get("description", m.get("description", ""))
+            models[i]["updated_at"] = datetime.datetime.now().isoformat()
+            found = True
+            break
+
+    if not found:
+        return jsonify({"success": False, "error": "模型不存在"}), 404
+
+    save_models(models)
+    return jsonify({"success": True, "data": models[i], "message": "模型更新成功"})
+
+
 # --------------------------------------------------------------------------
 # 评测 API
 # --------------------------------------------------------------------------
