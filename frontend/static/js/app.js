@@ -461,7 +461,7 @@ const App = {
             if (barEl && charts.bar_chart) { const bar = echarts.init(barEl); bar.setOption(charts.bar_chart); }
             const pieEl = document.getElementById('hallucination-pie-chart');
             if (pieEl && charts.pie_chart) { const pie = echarts.init(pieEl); pie.setOption(charts.pie_chart); }
-            const tbody = document.querySelector('#report-detail-table tbody');
+            const tbody = document.getElementById('report-detail-tbody');
             if (report.results && report.results.length > 0) {
                 tbody.innerHTML = report.results.map(r => `<tr><td>${r.dimension || '--'}</td><td>${r.test_case_id || '--'}</td><td>${r.score != null ? r.score : '--'}</td><td>${r.passed ? '✅' : '❌'}</td><td>${r.hallucination_detected ? '🔴' : '🟢'}</td><td><span class="risk-${r.risk_level || 'unknown'}">${r.risk_level || '--'}</span></td></tr>`).join('');
             } else {

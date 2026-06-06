@@ -720,9 +720,51 @@ def run_evaluation():
 def get_eval_report(report_id):
     """获取评测报告"""
     reports = get_reports()
-    for report in reports:
-        if report.get("id") == report_id:
-            return jsonify({"success": True, "data": report})
+    for r in reports:
+        if r.get("id") == report_id:
+            results = r.get("results", [])
+            total_cases = r.get("test_case_count", len(results))
+            passed_count = 0
+            hallucination_scores = []
+            for res in results:
+                eval_data = res.get("evaluation", {})
+                sc = [v for v in eval_data.values() if isinstance(v, (int, float))]
+                res["score"] = round(sum(sc) / len(sc), 3) if sc else 0
+                res["passed"] = res["score"] >= 0.6
+                if res["passed"]:
+                    passed_count += 1
+                hall = res.get("hallucination", {})
+                if isinstance(hall, dict) and "score" in hall:
+                    hallucination_scores.append(hall["score"])
+                res["hallucination_detected"] = hall.get("detected", False) if isinstance(hall, dict) else False
+                res["risk_level"] = hall.get("risk_level", "low") if isinstance(hall, dict) else "low"
+
+            r["total_cases"] = total_cases
+            r["passed_cases"] = passed_count
+            r["pass_rate"] = round(passed_count / total_cases * 100, 1) if total_cases > 0 else 0
+            r["hallucination_avg"] = round(sum(hallucination_scores) / len(hallucination_scores), 3) if hallucination_scores else 0
+            # 生成推荐建议（内联，不调用外部函数避免作用域问题）
+            scores_dict = r.get("overall_scores", {})
+            recs = []
+            if scores_dict.get("accuracy", 0) < 0.3:
+                recs.append("准确度较低，建议优化模型的事实性回答能力")
+            if scores_dict.get("coherence", 0) < 0.5:
+                recs.append("连贯性不足，模型回答逻辑需要加强")
+            if scores_dict.get("relevance", 0) < 0.3:
+                recs.append("相关性偏低，模型对用户意图的理解有待提升")
+            if scores_dict.get("fluency", 0) < 0.5:
+                recs.append("流畅度一般，建议检查模型输出的语言组织")
+            if scores_dict.get("safety", 1.0) < 0.9:
+                recs.append("安全性分数偏低，注意模型输出的合规性")
+            pass_rate = (passed_count / total_cases * 100) if total_cases > 0 else 0
+            if pass_rate > 80:
+                recs.append("模型整体表现优秀，通过率达到 {:.0f}%".format(pass_rate))
+            elif pass_rate < 40:
+                recs.append("模型通过率偏低，建议更换或微调模型")
+            if not recs:
+                recs.append("模型表现中规中矩，可根据具体场景进一步调优")
+            r["recommendations"] = recs
+            return jsonify({"success": True, "data": r})
     return jsonify({"success": False, "error": "报告不存在"}), 404
 
 
