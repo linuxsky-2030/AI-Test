@@ -804,6 +804,8 @@ def list_reports():
             "status": r.get("status", "unknown")
         })
 
+    # 过滤掉无结果的报告（API失败导致的空数据）
+    summary = [r for r in summary if r.get("test_case_count", 0) > 0]
     return jsonify({"success": True, "data": summary, "total": len(summary)})
 
 
