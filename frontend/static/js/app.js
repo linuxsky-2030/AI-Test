@@ -137,7 +137,8 @@ const App = {
             html += `<div style="margin-bottom:16px;"><div style="font-size:12px;color:#888;font-weight:500;margin-bottom:8px;">${provider}</div><div style="display:flex;flex-wrap:wrap;gap:8px;">`;
             for (const model of pModels) {
                 const isAdded = configuredNames.includes(model.name);
-                html += `<button class="pop-model-btn ${isAdded ? 'added' : ''}" onclick="App.quickAddModel(${JSON.stringify(model).replace(/"/g, '&quot;')})" ${isAdded ? 'disabled' : ''}><span>${model.icon}</span><span>${model.name}</span>${isAdded ? '<span style="font-size:11px;">✓ 已添加</span>' : '<span>+ 添加</span>'}</button>`;
+                const encoded = btoa(encodeURIComponent(JSON.stringify(model)));
+                html += `<button class="pop-model-btn ${isAdded ? 'added' : ''}" data-model="${encoded}" onclick="App.quickAddModelFromBtn(this)" ${isAdded ? 'disabled' : ''}><span>${model.icon}</span><span>${model.name}</span>${isAdded ? '<span style="font-size:11px;">✓ 已添加</span>' : '<span>+ 添加</span>'}</button>`;
             }
             html += '</div></div>';
         }
@@ -156,6 +157,17 @@ const App = {
             const json = await res.json();
             if (json.id || json.success) this.loadModels();
         } catch (e) { alert('添加失败：' + e.message); }
+    },
+
+    async quickAddModelFromBtn(btn) {
+        try {
+            const encoded = btn.dataset.model;
+            const model = JSON.parse(decodeURIComponent(atob(encoded)));
+            await this.quickAddModel(model);
+        } catch (e) {
+            console.error('quickAddModelFromBtn error:', e);
+            alert('添加失败：' + e.message);
+        }
     },
 
     // ── 一键评测 ──
@@ -346,7 +358,7 @@ const App = {
         } catch (e) { alert('上传失败：' + e.message); }
     },
 
-    downloadTCTemplate() { window.open(`${API_BASE}/testcases/template`); },
+    downloadTCTemplate() { window.open(`${API_BASE}/testcases/template/download`); },
 };
 
 // ── 初始化 ──

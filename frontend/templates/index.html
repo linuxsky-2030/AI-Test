@@ -130,6 +130,30 @@
                         <div class="empty-state">暂无配置模型，请从上方快速添加</div>
                     </div>
                 </div>
+
+                <!-- 模型配置说明 -->
+                <div class="model-config-doc" style="margin-top:30px;background:#f8f9fa;border-radius:10px;padding:24px;">
+                    <h3 style="margin-bottom:12px;">🤖 模型配置说明</h3>
+                    <table class="data-table" style="font-size:13px;">
+                        <thead>
+                            <tr><th>字段</th><th>说明</th><th>示例</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td><code>name</code></td><td>模型名称（必填）</td><td><code>GPT-4o</code></td></tr>
+                            <tr><td><code>model_type</code></td><td>模型类型</td><td><code>openai</code> / <code>claude</code> / <code>gemini</code> / <code>custom</code></td></tr>
+                            <tr><td><code>api_endpoint</code></td><td>API 地址（openai/claude/gemini 自动填充，可自定义）</td><td><code>https://api.openai.com/v1/chat/completions</code></td></tr>
+                            <tr><td><code>api_key</code></td><td>API Key（必填，评测时调用模型用）</td><td><code>sk-...</code></td></tr>
+                            <tr><td><code>capabilities</code></td><td>模型能力标签</td><td><code>chat</code> / <code>vision</code> / <code>function_call</code> / <code>embedding</code></td></tr>
+                        </tbody>
+                    </table>
+                    <div style="margin-top:12px;background:#fff3cd;border-radius:6px;padding:12px;font-size:13px;">
+                        <strong>💡 如何获取 API Key：</strong><br>
+                        • <strong>OpenAI</strong>：<a href="https://platform.openai.com/api-keys" target="_blank">platform.openai.com/api-keys</a><br>
+                        • <strong>Anthropic Claude</strong>：<a href="https://console.anthropic.com/settings/keys" target="_blank">console.anthropic.com</a><br>
+                        • <strong>Google Gemini</strong>：<a href="https://aistudio.google.com/app/apikey" target="_blank">aistudio.google.com</a><br>
+                        • <strong>DeepSeek</strong>：<a href="https://platform.deepseek.com/api_keys" target="_blank">platform.deepseek.com</a>
+                    </div>
+                </div>
             </section>
 
             <!-- ============================================================ -->
@@ -356,6 +380,41 @@
 
                 <div id="tc-list" class="tc-list">
                     <div class="empty-state">暂无测试用例</div>
+                </div>
+
+                <!-- 模板格式说明 -->
+                <div class="template-doc" style="margin-top:30px;background:#f8f9fa;border-radius:10px;padding:24px;">
+                    <h3 style="margin-bottom:12px;">📋 测试用例模板说明</h3>
+                    <p style="font-size:13px;color:#666;margin-bottom:16px;">点击「下载模板」获取 JSON 文件，按以下格式填写后上传。</p>
+
+                    <table class="data-table" style="font-size:13px;">
+                        <thead>
+                            <tr><th>字段</th><th>说明</th><th>示例值</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td><code>id</code></td><td>唯一标识</td><td><code>custom_001</code></td></tr>
+                            <tr><td><code>dimension</code></td><td>评测维度</td><td><code>multimodal_intent</code> / <code>end_to_end</code> / <code>custom_agent</code> / <code>security_risk</code></td></tr>
+                            <tr><td><code>title</code></td><td>用例标题</td><td><code>【多模态感知】语音指令解析</code></td></tr>
+                            <tr><td><code>description</code></td><td>详细描述</td><td>用户说：导航到最近的加油站</td></tr>
+                            <tr><td><code>input_data</code></td><td>输入数据（对象）</td><td><code>{"text": "导航到最近的加油站"}</code></td></tr>
+                            <tr><td><code>expected_output</code></td><td>期望输出（对象）</td><td><code>{"intent": "navigation"}</code></td></tr>
+                            <tr><td><code>difficulty</code></td><td>难度等级</td><td><code>easy</code> / <code>medium</code> / <code>hard</code></td></tr>
+                            <tr><td><code>source</code></td><td>来源</td><td><code>custom</code></td></tr>
+                        </tbody>
+                    </table>
+
+                    <div style="margin-top:16px;">
+                        <div style="font-size:13px;font-weight:500;margin-bottom:8px;">上传格式支持：</div>
+                        <div style="display:flex;gap:16px;font-size:13px;color:#666;">
+                            <span>📄 单个用例：JSON 对象</span>
+                            <span>📁 批量上传：JSON 数组 <code>[{...}, {...}]</code></span>
+                            <span>📊 CSV 格式（需包含表头）</span>
+                        </div>
+                    </div>
+
+                    <div style="margin-top:12px;background:#fff3cd;border-radius:6px;padding:12px;font-size:13px;">
+                        <strong>💡 小提示：</strong>CSV 格式请确保包含 <code>id</code>, <code>dimension</code>, <code>title</code>, <code>description</code>, <code>input_data</code>, <code>expected_output</code>, <code>difficulty</code>, <code>source</code> 列。<code>input_data</code> 和 <code>expected_output</code> 列建议存 JSON 字符串。
+                    </div>
                 </div>
             </section>
 

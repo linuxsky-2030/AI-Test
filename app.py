@@ -654,18 +654,39 @@ def upload_testcase():
 
 @app.route("/api/testcases/template", methods=["GET"])
 def download_testcase_template():
-    """下载测试用例模板"""
+    """下载测试用例模板（JSON格式）"""
     template = {
         "id": "example_001",
         "dimension": "multimodal_intent",
-        "title": "示例测试用例",
-        "description": "测试用例描述",
-        "input_data": {"text": "输入内容"},
-        "expected_output": {"expected": "期望输出"},
+        "title": "【多模态感知】语音指令解析",
+        "description": "用户说：导航到最近的加油站，系统需要正确识别导航意图并执行",
+        "input_data": {"text": "导航到最近的加油站", "modality": "text"},
+        "expected_output": {"intent": "navigation", "action": "search_nearby", "params": {"keyword": "加油站"}},
         "difficulty": "medium",
         "source": "custom"
     }
     return jsonify({"success": True, "data": template})
+
+
+
+@app.route("/api/testcases/template/download", methods=["GET"])
+def download_testcase_template_file():
+    """直接下载模板JSON文件"""
+    template = {
+        "id": "example_001",
+        "dimension": "multimodal_intent",
+        "title": "【多模态感知】语音指令解析",
+        "description": "用户说：导航到最近的加油站，系统需要正确识别导航意图并执行",
+        "input_data": {"text": "导航到最近的加油站", "modality": "text"},
+        "expected_output": {"intent": "navigation", "action": "search_nearby", "params": {"keyword": "加油站"}},
+        "difficulty": "medium",
+        "source": "custom"
+    }
+    import io
+    output = io.StringIO()
+    import json
+    output.write(json.dumps(template, ensure_ascii=False, indent=2))
+    return app.response_class(output.getvalue(), mimetype='application/json', headers={'Content-Disposition': 'attachment; filename=testcase_template.json'})
 
 
 # --------------------------------------------------------------------------
