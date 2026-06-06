@@ -52,6 +52,114 @@ const POPULAR_MODELS = [
     { name: "Step-2 万亿参数", type: "custom", provider: "阶跃星辰", endpoint: "", icon: "⭐", capabilities: ["chat"] },
 ];
 
+
+// ChatAI 聚合平台真实模型列表（chatai.sjzgw.cn 爬取）
+const CHATAI_MODELS = [
+    { name: "G-5-nano", provider: "general", desc: "G-5-Nano-0807, 最快、最具成本效益的版本", caps: ["chat"], is_new: false, is_hot: true, credit: 0 },
+    { name: "G-5.4-nano", provider: "general", desc: "G-5.4-Nano-0317, 用于速度和成本最为重要的任务。", caps: ["chat"], is_new: false, is_hot: false, credit: 0 },
+    { name: "G-5.4-mini", provider: "general", desc: "G-5.4-Mini-0317, 将 5.4 的优势提升到更快、更高效的状态 为高负载工作量设计的模型。", caps: ["chat"], is_new: false, is_hot: false, credit: 0 },
+    { name: "G-5-mini", provider: "general", desc: "G-5-Mini-0807, 更快、更经济高效的版本，适用于明确定义的任务", caps: ["chat"], is_new: false, is_hot: false, credit: 0 },
+    { name: "G-4.1-mini", provider: "general", desc: "G-4.1-mini-0414, 兼顾智能、速度和成本", caps: ["chat"], is_new: false, is_hot: false, credit: 0 },
+    { name: "G-4.1-nano", provider: "general", desc: "G-4.1-nano-0414, 最快、最具成本效益的 GPT-4.1 模型", caps: ["chat"], is_new: false, is_hot: false, credit: 0 },
+    { name: "G-4o-mini", provider: "general", desc: "G-4o-mini-0718, 快速、经济的小型GPT模型", caps: ["chat"], is_new: false, is_hot: false, credit: 0 },
+    { name: "Gemini 3.1 Flash-Lite", provider: "general", desc: "Gemini 3.1 Flash-Lite-0304, 最具成本效益的模型针对的是大量代理任务、翻译和简单数据处理。", caps: ["chat"], is_new: true, is_hot: false, credit: 0 },
+    { name: "GLM-5.1", provider: "general", desc: "GLM-5.1-0408,是智谱AI推出的面向长程任务设计的模型，拥有强大逻辑推理、长文本理解与代码生成能力、兼顾性能与推理效率；在多任务基准中表现优异，适用于智能交互、企业应用、开发辅助等场景。", caps: ["chat"], is_new: true, is_hot: false, credit: 0 },
+    { name: "DeepSeek V4 Flash", provider: "general", desc: "DeepSeek V4 Flash-0424 拥有百万字超长上下文，在 Agent 能力、世界知识和推理性能上均实现国内与开源领域的领先。", caps: ["chat"], is_new: true, is_hot: false, credit: 0 },
+    { name: "DeepSeek-V3.2", provider: "general", desc: "DeepSeek-V3.2-1201正式版模型，平衡推理能力与输出长度，适合日常使用", caps: ["chat"], is_new: false, is_hot: true, credit: 0 },
+    { name: "DeepSeek-V3.2 Thinking", provider: "general", desc: "DeepSeek-V3.2-1201启用了推理功能，平衡推理能力与输出长度，适合日常使用", caps: ["chat"], is_new: false, is_hot: true, credit: 0 },
+    { name: "DeepSeek-V3", provider: "general", desc: "V3-0324最新版，数学，代码，推理能力显著提升", caps: ["chat"], is_new: false, is_hot: false, credit: 0 },
+    { name: "通义千问", provider: "general", desc: "通义千问-0624, 专注于增强 AI 推理能力", caps: ["chat"], is_new: false, is_hot: false, credit: 0 },
+    { name: "通义千问 Plus", provider: "general", desc: "通义千问 Plus-0624, 适合中等复杂任务", caps: ["chat"], is_new: false, is_hot: false, credit: 0 },
+    { name: "MiniMax-M2", provider: "general", desc: "MiniMax-M2，专为 Agent 和代码而生.", caps: ["chat"], is_new: true, is_hot: false, credit: 0 },
+    { name: "kimi-v1-8k", provider: "general", desc: "kimi-v1-8k-latest, 适用于生成短文本", caps: ["chat"], is_new: false, is_hot: false, credit: 0 },
+    { name: "kimi-v1-32k", provider: "general", desc: "kimi-v1-32k-latest, 适用于生成长文本", caps: ["chat"], is_new: false, is_hot: false, credit: 0 },
+    { name: "豆包Pro4K", provider: "general", desc: "豆包Pro4K-0115, 字节跳动自研LLM模型专业版，支持128K长文本，全系列可精调，具备更强的理解、生成、逻辑等综合能力，适配问答、总结、创作、分类等丰富场景。", caps: ["chat"], is_new: false, is_hot: false, credit: 0 },
+    { name: "豆包Pro32K", provider: "general", desc: "豆包Pro32K-0115, 效果最好的主力模型，适合处理复杂任务，在参考问答、总结摘要、创作、文本分类、角色扮演等场景都有很好的效果。支持32k上下文窗口的推理和精调。", caps: ["chat"], is_new: false, is_hot: false, credit: 0 },
+    { name: "豆包Pro128K", provider: "general", desc: "豆包Pro128K-0115, 效果最好的主力模型，适合处理复杂任务，在参考问答、总结摘要、创作、文本分类、角色扮演等场景都有很好的效果。支持128k上下文窗口的推理和精调。", caps: ["chat"], is_new: false, is_hot: false, credit: 0 },
+    { name: "文心一言", provider: "general", desc: "文心一言-1226, 百度文心一言大语言模型", caps: ["chat"], is_new: false, is_hot: false, credit: 0 },
+    { name: "混元", provider: "general", desc: "混元-0210, 混元大模型是由腾讯研发的大语言模型，具备强大的中文创作能力，复杂语境下的逻辑推理能力，以及可靠的任务执行能力。", caps: ["chat"], is_new: false, is_hot: false, credit: 0 },
+    { name: "G-5.2", provider: "advanced", desc: "G-5.2-1211, G-5.2 是 G-5 系列中最新的前沿级模型，相比 G-5.1 提供了更强的代理和长上下文性能", caps: ["chat"], is_new: false, is_hot: false, credit: 0 },
+    { name: "G-5.2-Chat", provider: "advanced", desc: "G-5.2-Chat-1211, 是 5.2 系列中快速、轻量级的成员，优化为低延迟聊天，同时保持强大的通用智能", caps: ["chat"], is_new: false, is_hot: false, credit: 0 },
+    { name: "G-5.1", provider: "advanced", desc: "G-5.1-1113, 与 G-5 相比，具有更强的通用推理能力、改进的指令依从性和更自然的对话风格", caps: ["chat"], is_new: false, is_hot: false, credit: 0 },
+    { name: "G-5.1-Chat", provider: "advanced", desc: "G-5.1-Chat-1113, 是 5.1 系列中快速、轻量级的成员，针对低延迟聊天进行了优化，同时保留了强大的通用智能", caps: ["chat"], is_new: false, is_hot: false, credit: 0 },
+    { name: "G-5.1-Codex-Mini", provider: "advanced", desc: "G-5.1-Codex-Mini-1113,是 G-5.1-Codex 的更小、更快的版本", caps: ["chat"], is_new: false, is_hot: false, credit: 0 },
+    { name: "G-4.1", provider: "advanced", desc: "G-4.1-0414, 比G-4o更强，擅长编程，适用于复杂任务的旗舰 GPT 模型", caps: ["chat"], is_new: false, is_hot: false, credit: 0 },
+    { name: "G-4o", provider: "advanced", desc: "G-4o-0806, 快速、智能、灵活的 GPT模型，适用于大多数场景", caps: ["chat"], is_new: false, is_hot: false, credit: 0 },
+    { name: "o4-mini", provider: "advanced", desc: "o4-mini-0416, 更快、更实惠的推理模型", caps: ["chat"], is_new: false, is_hot: false, credit: 0 },
+    { name: "Gemini 3.5 Flash", provider: "advanced", desc: "Gemini 3.5 Flash-0520，能够持续提供前沿水平的智能，并经过优化，可更快、更经济高效地处理实际任务", caps: ["chat"], is_new: true, is_hot: false, credit: 0 },
+    { name: "Gemini 3 Flash", provider: "advanced", desc: "Gemini 3 Flash-1218, 将Pro代理、编码和多模态智能结合起来，成本和速度更加平衡。", caps: ["chat"], is_new: false, is_hot: false, credit: 0 },
+    { name: "Gemini 2.5 Pro", provider: "advanced", desc: "Gemini 2.5 Pro-0617, 先进的思考型模型，能够推理编码、数学和 STEM 领域的复杂问题", caps: ["chat"], is_new: false, is_hot: false, credit: 0 },
+    { name: "Gemini 2.5 Flash", provider: "advanced", desc: "Gemini2.5 Flash-0617，高性价比的模型，提供全面的功能", caps: ["chat"], is_new: false, is_hot: false, credit: 0 },
+    { name: "Claude 4.6 Sonnet", provider: "advanced", desc: "Claude 4.6 Sonnet-0217 是 Anthropic 迄今为止最强大的 Sonnet 类模型，在编码、代理和专业工作领域都具备前沿性能。", caps: ["chat"], is_new: false, is_hot: true, credit: 0 },
+    { name: "Claude 4.5 Haiku", provider: "advanced", desc: "Claude 4.5 Haiku-1001, claude 最快的模型，具有接近前沿的智能", caps: ["chat"], is_new: false, is_hot: false, credit: 0 },
+    { name: "Claude 4.5 Sonnet", provider: "advanced", desc: "Claude 4.5 Sonnet-0929, 在大多数任务中提供最高智能，具有卓越的代理和编码功能", caps: ["chat"], is_new: false, is_hot: false, credit: 0 },
+    { name: "Claude 4 Sonnet", provider: "advanced", desc: "Claude 4 Sonnet-0514, 高性能模型，高智能、均衡表现", caps: ["chat"], is_new: false, is_hot: false, credit: 0 },
+    { name: "DeepSeek V4 Pro", provider: "advanced", desc: "DeepSeek V4 Pro-0424 拥有百万字超长上下文，在 Agent 能力、世界知识和推理性能上均实现国内与开源领域的领先,性能比肩顶级闭源模型。", caps: ["chat"], is_new: true, is_hot: false, credit: 0 },
+    { name: "DeepSeek-V3.1", provider: "advanced", desc: "V3.1-0821是深度求索全新推出的混合推理模型，较 deepseek-r1-0528 思考效率更高", caps: ["chat"], is_new: false, is_hot: false, credit: 0 },
+    { name: "DeepSeek-R1", provider: "advanced", desc: "R1-0528最新版，国产模型中效果最好的推理模型", caps: ["chat"], is_new: false, is_hot: false, credit: 0 },
+    { name: "Grok-4.3", provider: "advanced", desc: "Grok-4.3-0430, 擅长能动推理、知识工作和工具使用。", caps: ["chat"], is_new: true, is_hot: true, credit: 0 },
+    { name: "Grok-4.2", provider: "advanced", desc: "Grok-4.2-0331, 是 xAI 最新的旗舰型号，具备行业领先的速度和代理工具调用能力。", caps: ["chat"], is_new: false, is_hot: true, credit: 0 },
+    { name: "通义千问3-Max", provider: "advanced", desc: "通义千问3-Max-0923, 在智能体编程与工具调用方向进行了专项升级。达到领域SOTA水平，适配场景更加复杂的智能体需求。", caps: ["chat"], is_new: true, is_hot: false, credit: 0 },
+    { name: "通义32B", provider: "advanced", desc: "通义32B-0305, 大幅度提升了模型推理能力", caps: ["chat"], is_new: false, is_hot: false, credit: 0 },
+    { name: "kimi-k2.6", provider: "advanced", desc: "kimi-k2.6-0427,是 Kimi 最新最智能的模型", caps: ["chat"], is_new: true, is_hot: false, credit: 0 },
+    { name: "kimi-k2.5", provider: "advanced", desc: "kimi-k2.5-0127, 是 Kimi 迄今最智能的模型", caps: ["chat"], is_new: false, is_hot: false, credit: 0 },
+    { name: "kimi-k2.5 Thinking", provider: "advanced", desc: "kimi-k2.5-0127, 是 Kimi 迄今最智能的模型", caps: ["chat"], is_new: false, is_hot: false, credit: 0 },
+    { name: "kimi-v1-128k", provider: "advanced", desc: "kimi-v1-128k-latest, 适用于生成超长文本", caps: ["chat"], is_new: false, is_hot: false, credit: 0 },
+    { name: "Doubao-Seed-1.8", provider: "advanced", desc: "Doubao-Seed-1.8-1228, 全新面向多模态 Agent 场景定向优化模型。更强Agent能力、升级多模态理解、更灵活的上下文管理。", caps: ["chat"], is_new: true, is_hot: false, credit: 0 },
+    { name: "Doubao-Seed-1.6", provider: "advanced", desc: "Doubao-Seed-1.6-1015, 全新多模态深度思考模型，更强模型效果，服务复杂任务和有挑战场景", caps: ["chat"], is_new: true, is_hot: false, credit: 0 },
+    { name: "文心一言4.0", provider: "advanced", desc: "文心一言4.0-1025, 百度文心一言4.0大语言模型", caps: ["chat"], is_new: false, is_hot: false, credit: 0 },
+    { name: "讯飞星火4.0", provider: "advanced", desc: "讯飞星火4.0-latest, 由科大讯飞推出的新一代认知智能大模型，拥有跨领域的知识和语言理解能力，能够基于自然对话方式理解与执行任务。", caps: ["chat"], is_new: false, is_hot: false, credit: 0 },
+    { name: "G-5.5", provider: "points", desc: "G-5.5-0424,是 OpenAI 为复杂专业工作负载设计的前沿模型，具备更强的推理能力、更高的可靠性和更强的令牌效率，处理困难任务", caps: ["chat"], is_new: true, is_hot: false, credit: 200 },
+    { name: "G-5.4", provider: "points", desc: "G-5.4-0306, 是OpenAI最复杂专业工作的前沿模型", caps: ["chat"], is_new: false, is_hot: true, credit: 80 },
+    { name: "G-5.3-Codex", provider: "points", desc: "G-5.3-Codex-0224, 是 OpenAI 最先进的代理编码模型，结合了5.2的前沿软件工程性能和更广泛的推理和专业知识能力。", caps: ["chat"], is_new: false, is_hot: false, credit: 60 },
+    { name: "G-5.1-Codex", provider: "points", desc: "G-5.1-Codex-1113, 是 G-5.1 的专用版本,针对软件工程和编码工作流程进行了优化", caps: ["chat"], is_new: false, is_hot: false, credit: 50 },
+    { name: "G-5", provider: "points", desc: "G-5-0807, 跨领域编码和代理任务的最佳模型", caps: ["chat"], is_new: false, is_hot: false, credit: 50 },
+    { name: "G-5-Thinking", provider: "points", desc: "G-5-Thinking-0807, 跨领域编码和代理任务的最佳模型,启用思考功能", caps: ["chat"], is_new: false, is_hot: false, credit: 100 },
+    { name: "Gemini 3.1 Pro", provider: "points", desc: "Gemini 3.1 Pro-0219, Google最强大的代理和编码模型。它配备了100万令牌上下文窗口，具备复杂的多模态理解能力。", caps: ["chat"], is_new: true, is_hot: true, credit: 100 },
+    { name: "Gemini 3.1 Pro Thinking", provider: "points", desc: "Gemini 3.1 Pro Thinking-0219, Google最强大的代理和编码模型。它配备了100万令牌上下文窗口，具备复杂的多模态理解能力。", caps: ["chat"], is_new: true, is_hot: true, credit: 120 },
+    { name: "Claude 4.8 Opus", provider: "points", desc: "Claude 4.8 Opus-0529,是 Anthropic 在 Opus 家族中最强大的通用型号,它在多步推理、复杂编码和端到端项目编排方面尤为强大", caps: ["chat"], is_new: true, is_hot: false, credit: 260 },
+    { name: "Claude 4.7 Opus", provider: "points", desc: "Claude 4.7 Opus-0416, 是一个专为前沿编码、人工智能代理和复杂多步骤专业工作设计的混合推理模型。", caps: ["chat"], is_new: false, is_hot: true, credit: 260 },
+    { name: "Claude 4.6 Opus", provider: "points", desc: "Claude 4.6 Opus-0206, 是 Anthropic 最智能的模型，适用于构建智能体和编码", caps: ["chat"], is_new: false, is_hot: false, credit: 260 },
+    { name: "Claude 4.5 Opus", provider: "points", desc: "Claude 4.5 Opus-1101, 最智能的下一代模型，是编码、代理领域的行业领导者， 计算机使用和企业工作流程。", caps: ["chat"], is_new: false, is_hot: true, credit: 150 },
+    { name: "Grok-4", provider: "points", desc: "Grok-4-0709, 最新、最出色的旗舰型号，在自然语言、数学和推理方面提供无与伦比的性能", caps: ["chat"], is_new: false, is_hot: false, credit: 50 },
+    { name: "GPT Image 2-标清", provider: "image", desc: "由OpenAI开发的文生图模型，它具有高质量的图像生成功能，并且能够在图像创建中使用世界知识,在指令跟踪和生成逼真的图像方面也要好得多", caps: ["draw"], is_new: true, is_hot: false, credit: 50 },
+    { name: "GPT Image 2-高清", provider: "image", desc: "由OpenAI开发的文生图模型，它具有高质量的图像生成功能，并且能够在图像创建中使用世界知识,在指令跟踪和生成逼真的图像方面也要好得多", caps: ["draw"], is_new: true, is_hot: false, credit: 80 },
+    { name: "GPT Image 2-超清", provider: "image", desc: "由OpenAI开发的文生图模型，它具有高质量的图像生成功能，并且能够在图像创建中使用世界知识,在指令跟踪和生成逼真的图像方面也要好得多", caps: ["draw"], is_new: true, is_hot: false, credit: 240 },
+    { name: "GPT Image 1.5-标清", provider: "image", desc: "由OpenAI开发的文生图模型，它具有高质量的图像生成功能，并且能够在图像创建中使用世界知识,在指令跟踪和生成逼真的图像方面也要好得多", caps: ["draw"], is_new: false, is_hot: false, credit: 75 },
+    { name: "GPT Image 1.5-高清", provider: "image", desc: "由OpenAI开发的文生图模型，它具有高质量的图像生成功能，并且能够在图像创建中使用世界知识,在指令跟踪和生成逼真的图像方面也要好得多", caps: ["draw"], is_new: false, is_hot: false, credit: 150 },
+    { name: "Nano Banana 2", provider: "image", desc: "Nano Banana 2 (官方名称:Gemini 3.1 Flash Image) 以主流价格提供高质量的图片生成和对话式编辑功能，延迟时间短.图片像素：512", caps: ["draw"], is_new: true, is_hot: false, credit: 50 },
+    { name: "Nano Banana 2-1K", provider: "image", desc: "Nano Banana 2-1K(官方名称:Gemini 3.1 Flash Image) 以主流价格提供高质量的图片生成和对话式编辑功能，延迟时间短.图片像素：1024", caps: ["draw"], is_new: true, is_hot: false, credit: 100 },
+    { name: "Nano Banana 2-2K", provider: "image", desc: "Nano Banana 2-2K(官方名称:Gemini 3.1 Flash Image) 以主流价格提供高质量的图片生成和对话式编辑功能，延迟时间短.图片像素：2048", caps: ["draw"], is_new: true, is_hot: true, credit: 150 },
+    { name: "Nano Banana 2-4K", provider: "image", desc: "Nano Banana 2-4K(官方名称:Gemini 3.1 Flash Image) 以主流价格提供高质量的图片生成和对话式编辑功能，延迟时间短.图片像素：4096", caps: ["draw"], is_new: true, is_hot: false, credit: 260 },
+    { name: "Nano Banana Pro-2K", provider: "image", desc: "Nano Banana Pro-2K(官方名称:Gemini 3 Pro Image) 是谷歌最先进的图像生成和编辑模型。专为专业素材资源制作和复杂指令而设计。", caps: ["draw"], is_new: false, is_hot: true, credit: 160 },
+    { name: "Nano Banana Pro-4K", provider: "image", desc: "Nano Banana Pro-4K(官方名称:Gemini 3 Pro Image) 是谷歌最先进的图像生成和编辑模型。专为专业素材资源制作和复杂指令而设计。", caps: ["draw"], is_new: false, is_hot: false, credit: 260 },
+    { name: "Nano Banana", provider: "image", desc: "Nano Banana(官方名称:Gemini 2.5 Flash Image) 是谷歌最先进的图像生成和编辑模型。能够将多个图像混合到一张图像中，保持角色一致性以讲述丰富的故事，使用自然语言进行有针对性的转换。", caps: ["draw"], is_new: false, is_hot: false, credit: 60 },
+    { name: "FLUX.2 Pro", provider: "image", desc: "FLUX.2 Pro 用于大规模生产,提供卓越的提示跟随、视觉质量和创意控制——从生成惊艳图像到高级编辑能力。", caps: ["draw"], is_new: true, is_hot: false, credit: 50 },
+    { name: "FLUX.2 Flex", provider: "image", desc: "FLUX.2 Flex 用于细粒度控制,提供卓越的提示跟随、视觉质量和创意控制——从生成惊艳图像到高级编辑能力。", caps: ["draw"], is_new: true, is_hot: false, credit: 100 },
+    { name: "FLUX.2 Max", provider: "image", desc: "FLUX.2 Max 用于最高精度编辑,提供卓越的提示跟随、视觉质量和创意控制——从生成惊艳图像到高级编辑能力。", caps: ["draw"], is_new: true, is_hot: false, credit: 150 },
+    { name: "FLUX.1 Kontext", provider: "image", desc: "FLUX.1 Kontext 是由黑森林Black Forest Labs 开发的专业图像到图像编辑模型，专注于智能理解图像上下文和精准编辑。", caps: ["draw"], is_new: false, is_hot: false, credit: 150 },
+    { name: "MJ", provider: "image", desc: "MJ是一款只要关键字，一分钟就能透过AI算法生成相对应的图片。可以识别不同画家的艺术风格，例如安迪华荷、达芬奇、达利和毕加索等，还能识别特定镜头或摄影术语。", caps: ["draw"], is_new: false, is_hot: false, credit: 50 },
+    { name: "SD", provider: "image", desc: "Stable Diffusion是由CompVis、Stability AI和LAION共同开发的一种基于扩散过程的图像生成模型。 它通过模拟扩散过程，将噪声图像逐渐转化为目标图像。 Stable Diffusion具有强大的图像生成能力，可以生成高质量、高分辨率的图像，并具有良好的稳定性和可控性。", caps: ["draw"], is_new: false, is_hot: false, credit: 5 },
+    { name: "SD3.5 Large", provider: "image", desc: "SD3.5 Large 具有 80 亿参数，卓越的质量和提示依从性，这个基础模型是 Stable Diffusion 中最强大的 家庭。该型号非常适合 1 MP 分辨率的专业用例", caps: ["draw"], is_new: false, is_hot: false, credit: 100 },
+    { name: "SD3.5 Large Turbo", provider: "image", desc: "Stable Diffusion 3.5 Large 的蒸馏版本。 SD3.5 Large Turbo 生成具有出色提示依从性的高质量图像 只需 4 个步骤，使其比 Stable Diffusion 3.5 Large 快得多。", caps: ["draw"], is_new: false, is_hot: false, credit: 50 },
+    { name: "即梦AI", provider: "image", desc: "即梦AI在2024年3月于剪映团队研发的AI创作平台剪映Dreamina开放内测,支持生成准确的中文汉字和英文字母", caps: ["draw"], is_new: false, is_hot: false, credit: 50 },
+    { name: "Seedream 4.5", provider: "image", desc: "Seedream 4.5 是字节跳动最新自主研发的图像生成大模型,该模型在编辑一致性、人像美化和小字生成方面体验升级。", caps: ["draw"], is_new: true, is_hot: false, credit: 50 },
+    { name: "通义千问-Image-Max", provider: "image", desc: "通义千问-Image-Max-1230, 在各类生成任务中表现出色，大幅度降低了生成图片的AI感，提升图像真实性", caps: ["draw"], is_new: false, is_hot: false, credit: 100 },
+    { name: "Suno 5.5", provider: "music", desc: "Suno 能从单个提示词生成完整的、接近专业品质的歌曲。", caps: ["Music"], is_new: true, is_hot: false, credit: 100 },
+    { name: "MiniMax Music 2.6", provider: "music", desc: "MiniMax Music 2.6 让每个人都能成为音乐创作者", caps: ["Music"], is_new: true, is_hot: false, credit: 200 },
+    { name: "Seedance 2.0 Fast 标清", provider: "video", desc: "Seedance 2.0 Fast（暂不支持真人人脸），豆包大模型团队推出的新一代专业级多模态创作视频模型 Seedance 2.0，支持图像、视频、音频等多模态作为参考输入生成视频等能力", caps: ["video"], is_new: false, is_hot: true, credit: 80 },
+    { name: "Seedance 2.0 Fast 高清", provider: "video", desc: "Seedance 2.0 Fast（暂不支持真人人脸），豆包大模型团队推出的新一代专业级多模态创作视频模型 Seedance 2.0，支持图像、视频、音频等多模态作为参考输入生成视频等能力", caps: ["video"], is_new: false, is_hot: true, credit: 150 },
+    { name: "Seedance 2.0 标清", provider: "video", desc: "Seedance 2.0（暂不支持真人人脸），豆包大模型团队推出的新一代专业级多模态创作视频模型 Seedance 2.0，支持图像、视频、音频等多模态作为参考输入生成视频等能力", caps: ["video"], is_new: false, is_hot: true, credit: 100 },
+    { name: "Seedance 2.0 高清", provider: "video", desc: "Seedance 2.0（暂不支持真人人脸），豆包大模型团队推出的新一代专业级多模态创作视频模型 Seedance 2.0，支持图像、视频、音频等多模态作为参考输入生成视频等能力", caps: ["video"], is_new: false, is_hot: true, credit: 250 },
+    { name: "Veo 2", provider: "video", desc: "Veo 2是Google DeepMind开发的最新视频生成模型,主要特点包含:使用文本,图片生成最多8秒的视频", caps: ["video"], is_new: false, is_hot: false, credit: 300 },
+    { name: "Veo 3.0", provider: "video", desc: "Veo 3.0是Google DeepMind最先进的模型，可生成高保真度的8秒 720p或1080p视频，这些视频具有惊人的逼真效果和原生生成的音频", caps: ["video"], is_new: false, is_hot: false, credit: 350 },
+    { name: "Veo 3.1", provider: "video", desc: "Veo 3.1是Google DeepMind最先进的模型，可生成高保真度的8秒 720p或1080p视频，这些视频具有惊人的逼真效果和原生生成的音频", caps: ["video"], is_new: false, is_hot: false, credit: 350 },
+    { name: "Wan 2.6 高清", provider: "video", desc: "通义万相2.6-视频模型，智能分镜调度支持多镜头叙事，能够生成主体、场景和氛围一致的多镜头叙事视频，最高支持15秒时长，更高品质的声音生成，更好的指令遵循和视觉质量", caps: ["video"], is_new: false, is_hot: true, credit: 100 },
+    { name: "Wan 2.6 超清", provider: "video", desc: "通义万相2.6-视频模型，智能分镜调度支持多镜头叙事，能够生成主体、场景和氛围一致的多镜头叙事视频，最高支持15秒时长，更高品质的声音生成，更好的指令遵循和视觉质量", caps: ["video"], is_new: false, is_hot: true, credit: 150 },
+    { name: "MiniMax HaiLuo 2.3 768P", provider: "video", desc: "MiniMax HaiLuo 2.3-视频模型(无声音)，在肢体动作呈现、风格化以及人物微表情方面实现了显著的效果提升，同时对运动指令响应做进一步优化。", caps: ["video"], is_new: true, is_hot: false, credit: 60 },
+    { name: "MiniMax HaiLuo 2.3 1080P", provider: "video", desc: "MiniMax HaiLuo 2.3-视频模型(无声音)，在肢体动作呈现、风格化以及人物微表情方面实现了显著的效果提升，同时对运动指令响应做进一步优化。", caps: ["video"], is_new: true, is_hot: false, credit: 100 },
+];
+
 // ── 导航 ──
 document.querySelectorAll('.nav-item').forEach(item => {
     item.addEventListener('click', e => {
@@ -159,21 +267,26 @@ const App = {
             container.innerHTML = '<div class="empty-state">未找到匹配的模型</div>';
             return;
         }
+        const logoMap = { general:'🤖', advanced:'🧠', points:'💰', image:'🖼️', video:'🎬', music:'🎵' };
+        const bgMap = { general:'#4263EB', advanced:'#D97706', points:'#7C3AED', image:'#EC4899', video:'#EF4444', music:'#10B981' };
         container.innerHTML = models.map(m => {
             const isAdded = this._configuredNames.includes(m.name);
             const caps = (m.caps || ['chat']).map(c => `<span class="cap-tag">${c}</span>`).join('');
-            const newBadge = m.isNew ? '<span class="cm-new">NEW</span>' : '';
+            const newBadge = m.is_new ? '<span class="cm-new">NEW</span>' : '';
+            const hotBadge = m.is_hot ? '<span class="cm-new" style="background:#EF4444;">🔥 HOT</span>' : '';
+            const icon = m.icon || logoMap[m.provider] || '🤖';
+            const bg = m.logoBg || bgMap[m.provider] || '#4263EB';
             return `<div class="chatai-model-card">
                 <div style="display:flex;align-items:center;gap:10px;">
-                    <div class="cm-logo" style="background:${m.logoBg || '#4263EB'};color:white;">${m.icon}</div>
+                    <div class="cm-logo" style="background:${bg};color:white;">${icon}</div>
                     <div style="flex:1;min-width:0;">
                         <div class="cm-name">${m.name}</div>
                         <div class="cm-provider">${this._providerName(m.provider)}</div>
                     </div>
-                    ${newBadge}
+                    ${newBadge}${hotBadge}
                 </div>
                 <div class="cm-desc">${m.desc}</div>
-                <div class="cm-tags">${caps}${m.context ? `<span class="cap-tag" style="background:#FEF9C3;color:#92400E;">${m.context}</span>` : ''}</div>
+                <div class="cm-tags">${caps}</div>
                 <div style="display:flex;gap:8px;margin-top:6px;">
                     ${isAdded
                         ? `<button class="btn btn-sm" style="background:var(--primary-light);color:var(--primary);cursor:default;" disabled>✓ 已添加</button>`
@@ -185,7 +298,7 @@ const App = {
     },
 
     _providerName(p) {
-        const map = { kimi:'Kimi', claude:'Claude', deepseek:'DeepSeek', gpt:'G-5', gemini:'Gemini', grok:'Grok', minimax:'MiniMax', qwen:'通义千问', doubao:'豆包', zhipu:'智谱', ernie:'文心', hunyuan:'腾讯混元', spark:'讯飞星火', yi:'Yi', image:'图像/视频', other:'其他' };
+        const map = { general:'基础模型', advanced:'高级模型', points:'积分模型', image:'绘图模型', video:'视频模型', music:'音乐模型', kimi:'Kimi', claude:'Claude', deepseek:'DeepSeek', gpt:'G-5', gemini:'Gemini', grok:'Grok', minimax:'MiniMax', qwen:'通义千问', doubao:'豆包', zhipu:'智谱', ernie:'文心', hunyuan:'腾讯混元', spark:'讯飞星火', yi:'Yi', other:'其他' };
         return map[p] || p;
     },
 
