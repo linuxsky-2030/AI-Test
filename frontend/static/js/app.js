@@ -205,7 +205,7 @@ const App = {
             if (reports.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="7" class="empty-state">暂无评测报告</td></tr>';
             } else {
-                tbody.innerHTML = reports.slice(0, 5).map(r => `<tr><td>${r.model_name || '--'}</td><td>${(r.dimensions || []).join(', ') || '--'}</td><td>${r.overall_score || '--'}</td><td>${r.pass_rate != null ? r.pass_rate + '%' : '--'}</td><td><span class="risk-${r.risk_level || 'unknown'}">${r.risk_level || '--'}</span></td><td>${(r.generated_at || '').slice(0, 10)}</td><td><button class="btn-link" onclick="App.viewReport('${r.id}')">查看</button></td></tr>`).join('');
+                tbody.innerHTML = reports.slice(0, 5).map(r => `<tr><td>${r.model_name || '--'}</td><td>${(r.dimensions || []).join(', ') || '--'}</td><td>${r.overall_score != null ? r.overall_score : '--'}</td><td>${r.pass_rate != null ? r.pass_rate + '%' : '--'}</td><td><span class="risk-${r.risk_level || 'unknown'}">${r.risk_level || '--'}</span></td><td>${(r.generated_at || '').slice(0, 10)}</td><td><button class="btn-link" onclick="App.viewReport('${r.id}')">查看</button></td></tr>`).join('');
             }
         } catch (e) { console.error('Dashboard error:', e); }
     },
@@ -437,7 +437,7 @@ const App = {
             const reports = json.data || [];
             const tbody = document.getElementById('all-reports-tbody');
             if (reports.length === 0) { tbody.innerHTML = '<tr><td colspan="7" class="empty-state">暂无报告，点击「一键评测」开始</td></tr>'; return; }
-            tbody.innerHTML = reports.map(r => `<tr><td>${r.model_name || '--'}</td><td>${(r.dimensions || []).join(', ') || '--'}</td><td><strong>${r.overall_score || '--'}</strong></td><td>${r.pass_rate != null ? r.pass_rate + '%' : '--'}</td><td><span class="risk-${r.risk_level || 'unknown'}">${r.risk_level || '--'}</span></td><td>${(r.generated_at || '').slice(0, 10)}</td><td><button class="btn-link" onclick="App.viewReport('${r.id}')">查看</button></td></tr>`).join('');
+            tbody.innerHTML = reports.map(r => `<tr><td>${r.model_name || '--'}</td><td>${(r.dimensions || []).join(', ') || '--'}</td><td><strong>${r.overall_score != null ? r.overall_score : '--'}</strong></td><td>${r.pass_rate != null ? r.pass_rate + '%' : '--'}</td><td><span class="risk-${r.risk_level || 'unknown'}">${r.risk_level || '--'}</span></td><td>${(r.generated_at || '').slice(0, 10)}</td><td><button class="btn-link" onclick="App.viewReport('${r.id}')">查看</button></td></tr>`).join('');
         } catch (e) { console.error('Reports error:', e); }
     },
 
@@ -451,10 +451,10 @@ const App = {
             ]);
             const report = (await reportRes.json()).data || {};
             const charts = (await chartRes.json()).data || {};
-            document.getElementById('report-model-name').textContent = report.model_name || '--';
+            document.getElementById('report-model-name').textContent = report.model_name ?? '--';
             document.getElementById('report-score-display').textContent = (report.overall_score != null ? report.overall_score : '--') + '分';
-            document.getElementById('report-total-cases').textContent = report.total_cases || '--';
-            document.getElementById('report-passed').textContent = report.passed_cases || '--';
+            document.getElementById('report-total-cases').textContent = report.total_cases ?? '--';
+            document.getElementById('report-passed').textContent = report.passed_cases ?? '--';
             document.getElementById('report-pass-rate').textContent = (report.pass_rate != null ? report.pass_rate : '--') + '%';
             document.getElementById('report-hallucination').textContent = report.hallucination_avg != null ? report.hallucination_avg.toFixed(3) : '--';
             const barEl = document.getElementById('dim-bar-chart');
