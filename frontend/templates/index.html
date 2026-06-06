@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-Test · 大模型评测平台</title>
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+</head>
+<body>
+    <div class="layout">
+        <!-- 侧边导航 -->
+        <aside class="sidebar">
+            <div class="logo">
+                <span class="logo-icon">🧠</span>
+                <span class="logo-text">AI-Test</span>
+            </div>
+            <nav class="nav">
+                <a href="#dashboard" class="nav-item active" data-page="dashboard">
+                    <span>📊</span> 概览
+                </a>
+                <a href="#models" class="nav-item" data-page="models">
+                    <span>🤖</span> 模型配置
+                </a>
+                <a href="#eval" class="nav-item" data-page="eval">
+                    <span>⚡</span> 发起评测
+                </a>
+                <a href="#reports" class="nav-item" data-page="reports">
+                    <span>📋</span> 评测报告
+                </a>
+                <a href="#hallucination" class="nav-item" data-page="hallucination">
+                    <span>🔍</span> 幻觉检测
+                </a>
+                <a href="#testcases" class="nav-item" data-page="testcases">
+                    <span>📁</span> 测试用例
+                </a>
+                <a href="#settings" class="nav-item" data-page="settings">
+                    <span>⚙️</span> 设置
+                </a>
+            </nav>
+        </aside>
+
+        <!-- 主内容 -->
+        <main class="main-content">
+            <!-- 概览页 -->
+            <section id="page-dashboard" class="page active">
+                <div class="page-header">
+                    <h1>评测概览</h1>
+                    <button class="btn btn-primary" onclick="App.navigate('eval')">发起新评测</button>
+                </div>
+
+                <!-- 核心指标卡片 -->
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-icon">📊</div>
+                        <div class="metric-info">
+                            <div class="metric-value" id="total-models">0</div>
+                            <div class="metric-label">已配置模型</div>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon">⚡</div>
+                        <div class="metric-info">
+                            <div class="metric-value" id="total-evals">0</div>
+                            <div class="metric-label">累计评测次数</div>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon">🛡️</div>
+                        <div class="metric-info">
+                            <div class="metric-value" id="avg-security">--%</div>
+                            <div class="metric-label">平均安全拦截率</div>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon">🔍</div>
+                        <div class="metric-info">
+                            <div class="metric-value" id="avg-hallucination">--</div>
+                            <div class="metric-label">幻觉检测均分</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 雷达图：各维度得分 -->
+                <div class="chart-card">
+                    <h3>维度得分雷达图</h3>
+                    <div id="radar-chart" style="width:100%;height:350px;"></div>
+                </div>
+
+                <!-- 近期报告列表 -->
+                <div class="chart-card">
+                    <h3>近期评测报告</h3>
+                    <table class="data-table" id="recent-reports">
+                        <thead>
+                            <tr>
+                                <th>模型</th>
+                                <th>评测维度</th>
+                                <th>总分</th>
+                                <th>通过率</th>
+                                <th>风险等级</th>
+                                <th>时间</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reports-tbody">
+                            <tr><td colspan="7" class="empty-state">暂无评测报告</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- 模型配置页 -->
+            <section id="page-models" class="page">
+                <div class="page-header">
+                    <h1>模型配置</h1>
+                    <button class="btn btn-primary" onclick="App.showModelModal()">+ 添加模型</button>
+                </div>
+
+                <!-- 模型卡片列表 -->
+                <div class="model-cards" id="model-cards">
+                    <div class="empty-state">暂无配置模型，请添加</div>
+                </div>
+            </section>
+
+            <!-- 发起评测页 -->
+            <section id="page-eval" class="page">
+                <div class="page-header">
+                    <h1>发起评测</h1>
+                </div>
+
+                <div class="eval-form">
+                    <div class="form-section">
+                        <h3>1. 选择评测模型</h3>
+                        <select id="eval-model-select" class="form-control">
+                            <option value="">-- 选择模型 --</option>
+                        </select>
+                    </div>
+
+                    <div class="form-section">
+                        <h3>2. 选择评测维度</h3>
+                        <div class="dimension-grid">
+                            <label class="dimension-card selected">
+                                <input type="checkbox" name="dimension" value="multimodal_intent" checked>
+                                <div class="dim-icon">👁️</div>
+                                <div class="dim-name">多模态感知与意图理解</div>
+                                <div class="dim-target">目标≥96%</div>
+                            </label>
+                            <label class="dimension-card">
+                                <input type="checkbox" name="dimension" value="end_to_end">
+                                <div class="dim-icon">🔗</div>
+                                <div class="dim-name">真实环境端到端评测</div>
+                                <div class="dim-target">场景覆盖率</div>
+                            </label>
+                            <label class="dimension-card">
+                                <input type="checkbox" name="dimension" value="custom_agent">
+                                <div class="dim-icon">🤖</div>
+                                <div class="dim-name">自定义AI助手评测</div>
+                                <div class="dim-target">横向对比</div>
+                            </label>
+                            <label class="dimension-card">
+                                <input type="checkbox" name="dimension" value="security_risk">
+                                <div class="dim-icon">🛡️</div>
+                                <div class="dim-name">安全与风险分阶段评估</div>
+                                <div class="dim-target">拦截率≥95%</div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3>3. 选择/上传测试用例</h3>
+                        <div class="test-case-options">
+                            <label>
+                                <input type="radio" name="tc-source" value="builtin" checked> 使用内置题库
+                            </label>
+                            <label>
+                                <input type="radio" name="tc-source" value="custom"> 上传自定义用例
+                            </label>
+                            <label>
+                                <input type="radio" name="tc-source" value="manual"> 手动输入
+                            </label>
+                        </div>
+                        <div id="tc-upload-area" class="upload-area" style="display:none;">
+                            <input type="file" id="tc-file" accept=".json,.csv" onchange="App.handleTCUpload(this)">
+                            <p>拖拽或点击上传 JSON/CSV 格式测试用例</p>
+                        </div>
+                        <div id="tc-manual-area" style="display:none;">
+                            <textarea id="tc-manual-input" class="form-control" rows="6" placeholder="输入测试用例JSON格式..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button class="btn btn-primary btn-large" onclick="App.runEval()">⚡ 开始评测</button>
+                    </div>
+                </div>
+
+                <!-- 评测进度 -->
+                <div id="eval-progress" class="eval-progress" style="display:none;">
+                    <h3>评测进度</h3>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="eval-progress-fill"></div>
+                    </div>
+                    <div class="progress-text" id="eval-progress-text">准备中...</div>
+                    <div id="eval-live-results"></div>
+                </div>
+            </section>
+
+            <!-- 报告页 -->
+            <section id="page-reports" class="page">
+                <div class="page-header">
+                    <h1>评测报告</h1>
+                    <button class="btn btn-secondary" onclick="App.exportReport()">📥 导出报告</button>
+                </div>
+
+                <!-- 报告详情 -->
+                <div id="report-detail" class="report-detail" style="display:none;">
+                    <div class="report-summary">
+                        <div class="report-model-name" id="report-model-name">--</div>
+                        <div class="report-score-display" id="report-score-display">--</div>
+                        <div class="report-meta" id="report-meta"></div>
+                    </div>
+
+                    <div class="charts-row">
+                        <div class="chart-card half">
+                            <h3>各维度得分</h3>
+                            <div id="dim-bar-chart" style="width:100%;height:300px;"></div>
+                        </div>
+                        <div class="chart-card half">
+                            <h3>幻觉检测综合结果</h3>
+                            <div id="hallucination-pie-chart" style="width:100%;height:300px;"></div>
+                        </div>
+                    </div>
+
+                    <div class="chart-card">
+                        <h3>详细结果表格</h3>
+                        <table class="data-table" id="report-detail-table">
+                            <thead>
+                                <tr>
+                                    <th>维度</th><th>测试用例</th><th>得分</th>
+                                    <th>通过</th><th>幻觉检测</th><th>风险等级</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+
+                    <div class="chart-card">
+                        <h3>改进建议</h3>
+                        <ul id="report-recommendations" class="recommendations-list"></ul>
+                    </div>
+                </div>
+
+                <div id="reports-list-view">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>模型</th><th>评测维度</th><th>总分</th>
+                                <th>通过率</th><th>风险</th><th>时间</th><th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="all-reports-tbody">
+                            <tr><td colspan="7" class="empty-state">暂无报告</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- 幻觉检测页 -->
+            <section id="page-hallucination" class="page">
+                <div class="page-header">
+                    <h1>🔍 幻觉检测</h1>
+                </div>
+
+                <div class="hallucination-workspace">
+                    <div class="hallucination-input">
+                        <h3>待检测文本</h3>
+                        <textarea id="h-text" class="form-control" rows="6" placeholder="输入大模型的回答文本..."></textarea>
+
+                        <h3>上下文 / 参考内容（可选）</h3>
+                        <textarea id="h-context" class="form-control" rows="4" placeholder="输入上下文或参考资料..."></textarea>
+
+                        <h3>真实答案 / Ground Truth（可选）</h3>
+                        <textarea id="h-ground-truth" class="form-control" rows="4" placeholder="输入正确的参考答案..."></textarea>
+
+                        <div class="detection-methods">
+                            <h3>检测方法（可多选）</h3>
+                            <label><input type="checkbox" value="factscore" checked> FactScore+RAG</label>
+                            <label><input type="checkbox" value="selfcheck" checked> SelfCheckGPT</label>
+                            <label><input type="checkbox" value="nli" checked> NLI+LLM-Judge</label>
+                            <label><input type="checkbox" value="statistical" checked> 统计异常检测</label>
+                            <label><input type="checkbox" value="uncertainty"> 不确定性估计(白盒)</label>
+                        </div>
+
+                        <button class="btn btn-primary" onclick="App.detectHallucination()">🔍 开始检测</button>
+                    </div>
+
+                    <div class="hallucination-results">
+                        <h3>检测结果</h3>
+                        <div id="h-results-placeholder" class="empty-state">点击上方按钮开始检测</div>
+                        <div id="h-results" style="display:none;">
+                            <div class="h-summary-card">
+                                <div class="h-score" id="h-ensemble-score">--</div>
+                                <div class="h-verdict" id="h-verdict">--</div>
+                            </div>
+                            <div id="h-method-results"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 测试用例页 -->
+            <section id="page-testcases" class="page">
+                <div class="page-header">
+                    <h1>📁 测试用例管理</h1>
+                    <div>
+                        <button class="btn btn-secondary" onclick="App.downloadTCTemplate()">📥 下载模板</button>
+                        <button class="btn btn-primary" onclick="App.showTCUpload()">+ 上传用例</button>
+                    </div>
+                </div>
+
+                <div class="tc-filters">
+                    <select id="tc-filter-dim" onchange="App.loadTestCases()">
+                        <option value="">全部维度</option>
+                        <option value="multimodal_intent">多模态感知</option>
+                        <option value="end_to_end">端到端评测</option>
+                        <option value="custom_agent">自定义助手</option>
+                        <option value="security_risk">安全风险评估</option>
+                    </select>
+                    <select id="tc-filter-diff" onchange="App.loadTestCases()">
+                        <option value="">全部难度</option>
+                        <option value="easy">简单</option>
+                        <option value="medium">中等</option>
+                        <option value="hard">困难</option>
+                    </select>
+                    <span id="tc-count">共 0 条用例</span>
+                </div>
+
+                <div id="tc-list" class="tc-list">
+                    <div class="empty-state">暂无测试用例</div>
+                </div>
+            </section>
+
+            <!-- 设置页 -->
+            <section id="page-settings" class="page">
+                <div class="page-header"><h1>⚙️ 设置</h1></div>
+                <div class="settings-form">
+                    <div class="form-section">
+                        <h3>API 配置</h3>
+                        <div class="form-group">
+                            <label>OpenAI API Key</label>
+                            <input type="password" class="form-control" id="api-key-openai" placeholder="sk-...">
+                        </div>
+                        <div class="form-group">
+                            <label>Claude API Key</label>
+                            <input type="password" class="form-control" id="api-key-claude" placeholder="sk-ant-...">
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn btn-primary" onclick="App.saveSettings()">保存设置</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- 模型配置弹窗 -->
+    <div id="model-modal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="model-modal-title">添加模型</h3>
+                <span class="modal-close" onclick="App.closeModelModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>模型名称</label>
+                    <input type="text" class="form-control" id="m-name" placeholder="如：GPT-4">
+                </div>
+                <div class="form-group">
+                    <label>模型类型</label>
+                    <select class="form-control" id="m-type">
+                        <option value="openai">OpenAI</option>
+                        <option value="claude">Claude</option>
+                        <option value="local">本地模型</option>
+                        <option value="custom">自定义API</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>API Endpoint</label>
+                    <input type="text" class="form-control" id="m-endpoint" placeholder="https://api.openai.com/v1/chat/completions">
+                </div>
+                <div class="form-group">
+                    <label>API Key</label>
+                    <input type="password" class="form-control" id="m-apikey" placeholder="sk-...">
+                </div>
+                <div class="form-group">
+                    <label>模型能力（多选）</label>
+                    <div class="capability-checkboxes">
+                        <label><input type="checkbox" value="chat"> 对话</label>
+                        <label><input type="checkbox" value="vision"> 视觉</label>
+                        <label><input type="checkbox" value="function_call"> 函数调用</label>
+                        <label><input type="checkbox" value="embedding"> Embedding</label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="App.closeModelModal()">取消</button>
+                <button class="btn btn-primary" onclick="App.saveModel()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
