@@ -743,8 +743,18 @@ def get_eval_report(report_id):
             r["passed_cases"] = passed_count
             r["pass_rate"] = round(passed_count / total_cases * 100, 1) if total_cases > 0 else 0
             r["hallucination_avg"] = round(sum(hallucination_scores) / len(hallucination_scores), 3) if hallucination_scores else 0
-            # 生成推荐建议（内联，不调用外部函数避免作用域问题）
+            # 计算 overall_score（优先用已存储的，否则从 overall_scores 平均值，0.0 是有效值）
+            stored_score = r.get("overall_score")
             scores_dict = r.get("overall_scores", {})
+            if stored_score is not None:
+                computed_score = stored_score
+            elif scores_dict:
+                vals = list(scores_dict.values())
+                computed_score = round(sum(vals) / len(vals), 2) if vals else None
+            else:
+                computed_score = None
+            r["overall_score"] = computed_score
+            # 生成推荐建议
             recs = []
             if scores_dict.get("accuracy", 0) < 0.3:
                 recs.append("准确度较低，建议优化模型的事实性回答能力")
@@ -981,6 +991,17 @@ def get_report_chart(report_id):
                     "itemStyle": {
                         "color": "#5470C6"
                     }
+                }]
+            },
+            "pie": {
+                "series": [{
+                    "type": "pie",
+                    "radius": ["40%", "70%"],
+                    "data": [
+                        {"value": sum(1 for v in overall_scores.values() if v < 0.3), "name": "低风险", "itemStyle": {"color": "#52C41A"}},
+                        {"value": sum(1 for v in overall_scores.values() if 0.3 <= v < 0.6), "name": "中风险", "itemStyle": {"color": "#FAAD14"}},
+                        {"value": sum(1 for v in overall_scores.values() if v >= 0.6), "name": "高风险", "itemStyle": {"color": "#FF4D4F"}}
+                    ]
                 }]
             }
         }
